@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+require 'open-uri'
+require 'bibtex'
+
+$BIB_ROOT = Dir.open(File.join(Dir.home, 'bib', 'msni'))
+
+class MathSciNet
+  attr_reader :id, :bibtex
+
+  def initialize(id)
+    if /^\d+$/=~ id
+      @id = id
+    elsif /^MR\d+$/ =~ id
+      @id = id.sub('MR', '')
+    else
+      raise ArgumentError, "not a valid MR-ID"
+    end
+    fetch_data
+  end
+
+  def fetch_data
+    if @bibtex.nil?
+      @bibtex = BibTeX.parse(open("http://www.ams.org/mathscinet/search/publications.html?fmt=bibtex&pg1=MR&s1=#{@id}").read.sub(/.*<pre>/m,'').sub(/<\/pre>.*/m, '')).first
+    else
+      raise "Already have data"
+    end
+  end
+
+  def camel_case_title
+    authors = @bibtex.names.map do |n|
+      n.sub(/,.*/, '')
+    end
+    authors = authors.join(',')
+    title = @bibtex.title.to_s.split(' ').map { |w| w.gsub(/[^a-zA-Z0-9]/, '').capitalize }.join('')
+
+    return "#{authors}-#{title}"
+  end
+end
+
+
+mr = MathSciNet.new(ARGV[0])
+dir = File.join($BIB_ROOT, mr.camel_case_title)
+Dir.mkdir(dir) unless Dir.exists?(dir)
+
+File.open(File.join(dir, 'MR' + mr.id + '.bib' ), 'w') do |f|
+  f.puts mr.bibtex
+  f.puts "\n\n"
+end
+
+
+File.open(File.join(Dir.home, '.config/midori/config'), 'w') do |f|
+  f.puts <<EOF
+[settings]
+default-encoding=UTF-8
+enable-site-specific-quirks=true
+load-on-startup=MIDORI_STARTUP_HOMEPAGE
+download-folder=#{dir}
+preferred-encoding=MIDORI_ENCODING_UNICODE
+enable-spell-checking=false
+enable-html5-database=true
+EOF
+end
+
+`midori http://www.ams.org/mathscinet-getitem?mr=#{mr.id}`
+`urxvt -cd #{dir}`
