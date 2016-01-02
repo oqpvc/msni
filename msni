@@ -5,6 +5,18 @@ require 'bibtex'
 
 $BIB_ROOT = Dir.open(File.join(Dir.home, 'bib', 'msni'))
 
+class BibTeX::Entry
+  def camel_case_title
+    authors = self.names.map do |n|
+      n.sub(/,.*/, '').gsub('{\"a}', 'ä').gsub('{\"A}', 'Ä').gsub('{\"o}', 'ö').gsub('{\"O}', 'Ö').gsub('{\"u}', 'ü').gsub('{\"U}', 'Ü').gsub(/[^a-zA-Z0-9äöüÄÖÜ]/, '')
+    end
+    authors = authors.join(',')
+    title = self.title.to_s.gsub(/\\[^\s{]*/,'').split(' ').map { |w| w.gsub(/[^a-zA-Z0-9]/, '').capitalize }.join('')
+
+    return "#{authors}-#{title}"
+  end
+end
+
 class MathSciNet
   attr_reader :id, :bibtex
 
@@ -21,20 +33,14 @@ class MathSciNet
 
   def fetch_data
     if @bibtex.nil?
-      @bibtex = BibTeX.parse(open("http://www.ams.org/mathscinet/search/publications.html?fmt=bibtex&pg1=MR&s1=#{@id}").read.sub(/.*<pre>/m,'').sub(/<\/pre>.*/m, '')).first
+      @bibtex = BibTeX.parse(open("http://www.ams.org/mathscinet/search/publications.html?fmt=bibtex&pg1=MR&s1=#{@id}").read.sub(/.*<pre>/m,'').sub(/<\/pre>.*/m, '').sub(/\@preamble\{.*?\}/m, '')).first
     else
       raise "Already have data"
     end
   end
 
   def camel_case_title
-    authors = @bibtex.names.map do |n|
-      n.sub(/,.*/, '')
-    end
-    authors = authors.join(',')
-    title = @bibtex.title.to_s.split(' ').map { |w| w.gsub(/[^a-zA-Z0-9]/, '').capitalize }.join('')
-
-    return "#{authors}-#{title}"
+    @bibtex.camel_case_title
   end
 end
 
