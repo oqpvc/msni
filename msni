@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 
 require 'open-uri'
 require 'bibtex'
@@ -69,4 +70,12 @@ EOF
 end
 
 `midori http://www.ams.org/mathscinet-getitem?mr=#{mr.id}`
-`urxvt -cd #{dir}`
+`urxvt -cd #{dir} &`
+
+# we can't use mode 'a' for network file systems, it seems
+complete = File.join($BIB_ROOT, 'complete.bib')
+content = File.read(complete) + mr.bibtex.to_s + "\n\n"
+
+File.open(complete, 'w') do |f|
+  f.puts content
+end

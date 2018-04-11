@@ -29,6 +29,8 @@ Workflow
    file `MR0419359.bib` containing the BibTeX information pulled from
    MathSciNet and a file called `art%3A10.1007%2FBF01389745.pdf`
    containing the article.
+1. The BibTeX-information will automatically be added to
+   `~/bib/msni/complete.bib`.
 
 Why is that a good workflow?
 ----------------------------
@@ -43,3 +45,4 @@ Dependencies
 
 - midori
 - bibtex-ruby
+- urxvt
