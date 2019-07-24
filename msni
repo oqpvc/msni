@@ -56,20 +56,7 @@ File.open(File.join(dir, 'MR' + mr.id + '.bib' ), 'w') do |f|
 end
 
 
-File.open(File.join(Dir.home, '.config/midori/config'), 'w') do |f|
-  f.puts <<EOF
-[settings]
-default-encoding=UTF-8
-enable-site-specific-quirks=true
-load-on-startup=MIDORI_STARTUP_HOMEPAGE
-download-folder=#{dir}
-preferred-encoding=MIDORI_ENCODING_UNICODE
-enable-spell-checking=false
-enable-html5-database=true
-EOF
-end
-
-`midori http://www.ams.org/mathscinet-getitem?mr=#{mr.id}`
+`qutebrowser -s 'downloads.location.directory' '#{dir}' -s 'downloads.location.prompt' 'false' http://www.ams.org/mathscinet-getitem?mr=#{mr.id}`
 `urxvt -cd #{dir} &`
 
 # we can't use mode 'a' for network file systems, it seems

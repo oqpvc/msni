@@ -43,6 +43,6 @@ you search for author, title or review number.
 Dependencies
 ------------
 
-- midori
+- qutebrowser
 - bibtex-ruby
 - urxvt
